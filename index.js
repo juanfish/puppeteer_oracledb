@@ -13,7 +13,7 @@ async function main (){
     // const browser = await puppeteer.launch({headless:false}); // default is true
     const page = await browser.newPage();
     await page.goto('https://www.bcv.org.ve/');
-    await page.screenshot({path: 'bcv.png'})
+    
     
     title = await page.evaluate(() => {
         // retorno el precio de la tasa del dolar
@@ -22,13 +22,19 @@ async function main (){
     });
     const tasa = Number(title.replace(',','.'));        
     browser.close();
-    insertaTasa('2022001','USD',tasa);
+    const hoy = new Date(Date.now());
+
+    const fechaParseada = hoy.getFullYear().toString() + '-'+
+                       (hoy.getMonth()+1).toString().padStart(2,'0')+ '-'+
+                       hoy.getDate().toString().padStart(2,'0')
+    insertaTasa(flch_a_jul(fechaParseada),'USD',tasa);
 }
 
 async function getEmployee (empId) {
   let conn
 
   try {
+    
     conn = await oracledb.getConnection(config)    
 
     const result = await conn.execute(
@@ -76,4 +82,16 @@ async function insertaTasa (fecha,moneda,tasa) {
   }
 }
 
-main()
+function flch_a_jul(fecha) {
+  
+  const year = fecha.substr(0,4)
+  const fechaInicio = new Date(year+'-01-01').getTime();
+  var fechaFin = new Date(fecha).getTime();
+
+  const diff = fechaFin - fechaInicio;
+  var dias = (diff/(1000*60*60*24) + 1).toString();
+  
+  return  year+dias.padStart(3,'0');
+}
+
+main();
